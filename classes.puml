@@ -1,0 +1,221 @@
+@startuml
+skinparam classAttributeIconSize 0
+class LinkedList {
+  + LinkedList()
+  + empty(): bool
+  + size(): size_t
+  + front(): string*
+  + back(): string*
+  + at(index: size_t): string*
+
+  + push_front(v: string): void
+  + push_back(v: string): void
+  + pop_front(): bool
+  + pop_back(): bool
+
+  + insert_after(index: size_t, v: string): bool
+  + insert_before(index: size_t, v: string): bool
+  + erase_after(index: size_t): bool
+  + erase_before_tail(): bool
+
+  + index_of(x: string): int
+  + erase_first(x: string): bool
+  + erase_all(x: string): int
+
+  + clear(): void
+  + print(os: ostream): void
+  + save_to_file(filename: string): bool
+  + load_from_file(filename: string): bool
+
+  --
+  - head_: LLNode*
+  - tail_: LLNode*
+  - size_: size_t
+  - node_at(index: size_t): LLNode*
+}
+
+class LLNode {
+  - person: string
+  - next: LLNode*
+}
+LinkedList "1" o-- "*" LLNode
+
+
+class DLinkedList {
+  + DLinkedList()
+  + empty(): bool
+  + size(): size_t
+  + front(): string*
+  + back(): string*
+  + at(index: size_t): string*
+
+  + push_front(v: string): void
+  + push_back(v: string): void
+  + pop_front(): bool
+  + pop_back(): bool
+
+  + insert_after(index: size_t, v: string): bool
+  + insert_before(index: size_t, v: string): bool
+  + erase_after(index: size_t): bool
+  + erase_before(index: size_t): bool
+
+  + index_of(x: string): int
+  + erase_first(x: string): bool
+  + erase_all(x: string): int
+
+  + clear(): void
+  + print(os: ostream): void
+  + save_to_file(filename: string): bool
+  + load_from_file(filename: string): bool
+
+  --
+  - head_: DLNode*
+  - tail_: DLNode*
+  - size_: size_t
+  - node_at(index: size_t): DLNode*
+}
+
+class DLNode {
+  - person: string
+  - prev: DLNode*
+  - next: DLNode*
+}
+DLinkedList "1" o-- "*" DLNode
+
+
+class Queue {
+  + Queue()
+  + empty(): bool
+  + size(): size_t
+  + front(): string*
+  + back(): string*
+  + push(v: string): void
+  + pop(out: string*): bool
+
+  + clear(): void
+  + print(os: ostream): void
+  + save_to_file(filename: string): bool
+  + load_from_file(filename: string): bool
+
+  --
+  - head_: QNode*
+  - tail_: QNode*
+  - size_: size_t
+}
+
+class QNode {
+  - person: string
+  - next: QNode*
+}
+Queue "1" o-- "*" QNode
+
+
+class Stack {
+  + Stack()
+  + empty(): bool
+  + size(): size_t
+  + peek(): string*
+  + push(v: string): void
+  + pop(out: string*): bool
+
+  + clear(): void
+  + print(os: ostream): void
+  + save_to_file(filename: string): bool
+  + load_from_file(filename: string): bool
+
+  --
+  - top_: SNode*
+  - size_: size_t
+}
+
+class SNode {
+  - person: string
+  - next: SNode*
+}
+Stack "1" o-- "*" SNode
+
+
+class HashSet {
+  + HashSet(tableSize: size_t)
+  + empty(): bool
+  + size(): size_t
+  + table_size(): size_t
+  + contains(elem: string): bool
+  + insert(elem: string): bool
+  + erase(elem: string): bool
+  + clear(): void
+  + print(os: ostream): void
+  + save_to_file(path: string): bool
+  + load_from_file(path: string): bool
+
+  --
+  - buckets_: HSNode**
+  - tableSize_: size_t
+  - size_: size_t
+  - hash_func(str: string): ulong
+}
+
+class HSNode {
+  - val: string
+  - next: HSNode*
+}
+HashSet "1" o-- "*" HSNode
+
+
+class HashMap {
+  + HashMap(bucketCount: size_t)
+  + empty(): bool
+  + size(): size_t
+  + bucket_count(): size_t
+  + contains(key: string): bool
+  + set(key: string, value: string): void
+  + get(key: string, outVal: string&): bool
+  + erase(key: string): bool
+  + clear(): void
+  + print(os: ostream): void
+  + save_to_file(filename: string): bool
+  + load_from_file(filename: string): bool
+
+  --
+  - buckets_: HMNode**
+  - bucketCount_: size_t
+  - size_: size_t
+}
+
+class HMNode {
+  - key: string
+  - value: string
+  - next: HMNode*
+}
+HashMap "1" o-- "*" HMNode
+
+
+class BSTree {
+  + BSTree()
+  + empty(): bool
+  + size(): size_t
+  + height(): int
+  + insert(value: string): bool
+  + contains(value: string): bool
+  + erase(value: string): bool
+  + min_value(): string*
+  + max_value(): string*
+  + clear(): void
+  + print_inorder(os: ostream): void
+  + print_structure(os: ostream): void
+  + save_to_file(filename: string): bool
+  + load_from_file(filename: string): bool
+
+  --
+  - root_: BSTNode*
+  - size_: size_t
+}
+
+class BSTNode {
+  - value: string
+  - left: BSTNode*
+  - right: BSTNode*
+}
+BSTree "1" o-- "*" BSTNode
+
+@enduml
