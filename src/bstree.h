@@ -37,6 +37,10 @@ public:
     // читаем файл (по строке = одно значение) и добавляем в дерево
     bool load_from_file(const std::string& filename);
 
+    // бинарная сериализация
+    bool save_to_binary(const std::string& filename) const;
+    bool load_from_binary(const std::string& filename);
+
 private:
     struct Node {
         std::string value;

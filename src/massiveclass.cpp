@@ -224,3 +224,43 @@ bool HashSet::save_to_file(const std::string& path) const {
     }
     return true;
 }
+
+bool HashSet::save_to_binary(const std::string& path) const {
+    std::ofstream f(path, std::ios::binary);
+    if (!f.is_open()) return false;
+
+    f.write(reinterpret_cast<const char*>(&size_), sizeof(size_));
+
+    for (std::size_t i = 0; i < tableSize_; ++i) {
+        Node* curr = buckets_[i];
+        while (curr) {
+            size_t len = curr->val.size();
+            f.write(reinterpret_cast<const char*>(&len), sizeof(len));
+            f.write(curr->val.data(), len);
+            curr = curr->next;
+        }
+    }
+    return true;
+}
+
+bool HashSet::load_from_binary(const std::string& path) {
+    std::ifstream f(path, std::ios::binary);
+    if (!f.is_open()) return false;
+
+    clear();
+
+    size_t count = 0;
+    f.read(reinterpret_cast<char*>(&count), sizeof(count));
+
+    for (size_t i = 0; i < count; ++i) {
+        size_t len = 0;
+        f.read(reinterpret_cast<char*>(&len), sizeof(len));
+        
+        std::string s;
+        s.resize(len);
+        f.read(&s[0], len);
+
+        insert(s);
+    }
+    return true;
+}

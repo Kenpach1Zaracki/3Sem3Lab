@@ -1,5 +1,11 @@
 package containers
 
+import (
+	"encoding/gob"
+	"encoding/json"
+	"os"
+)
+
 type hashEntry struct {
 	key   string
 	value string
@@ -128,4 +134,78 @@ func (m *HashMap) Keys() []string {
 		}
 	}
 	return res
+}
+
+func (m *HashMap) toMap() map[string]string {
+	res := make(map[string]string, m.size)
+	for _, bucket := range m.buckets {
+		for _, e := range bucket {
+			res[e.key] = e.value
+		}
+	}
+	return res
+}
+
+func (m *HashMap) SaveToBinary(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	data := m.toMap()
+	enc := gob.NewEncoder(f)
+	return enc.Encode(data)
+}
+
+func (m *HashMap) LoadFromBinary(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := gob.NewDecoder(f)
+	var data map[string]string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+
+	m.Clear()
+	for k, v := range data {
+		m.Set(k, v)
+	}
+	return nil
+}
+
+func (m *HashMap) SaveToText(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	data := m.toMap()
+	enc := json.NewEncoder(f)
+	return enc.Encode(data)
+}
+
+func (m *HashMap) LoadFromText(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := json.NewDecoder(f)
+	var data map[string]string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+
+	m.Clear()
+	for k, v := range data {
+		m.Set(k, v)
+	}
+	return nil
 }

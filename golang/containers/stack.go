@@ -1,5 +1,11 @@
 package containers
 
+import (
+	"encoding/gob"
+	"encoding/json"
+	"os"
+)
+
 type Stack struct {
 	data []string
 }
@@ -35,4 +41,58 @@ func (s *Stack) Size() int {
 
 func (s *Stack) Empty() bool {
 	return len(s.data) == 0
+}
+
+func (s *Stack) SaveToBinary(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	enc := gob.NewEncoder(f)
+	return enc.Encode(s.data)
+}
+
+func (s *Stack) LoadFromBinary(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := gob.NewDecoder(f)
+	var data []string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+	s.data = data
+	return nil
+}
+
+func (s *Stack) SaveToText(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	enc := json.NewEncoder(f)
+	return enc.Encode(s.data)
+}
+
+func (s *Stack) LoadFromText(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := json.NewDecoder(f)
+	var data []string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+	s.data = data
+	return nil
 }

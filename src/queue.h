@@ -31,6 +31,9 @@ public:
     bool save_to_file(const std::string& filename) const;
     bool load_from_file(const std::string& filename);
 
+    bool save_to_binary(const std::string& filename) const;
+    bool load_from_binary(const std::string& filename);
+
 private:
     struct Node {
         std::string person;

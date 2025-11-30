@@ -1,5 +1,11 @@
 package containers
 
+import (
+	"encoding/gob"
+	"encoding/json"
+	"os"
+)
+
 type doublyNode struct {
 	value string
 	prev  *doublyNode
@@ -183,4 +189,72 @@ func (l *DoublyList) ToSlice() []string {
 		cur = cur.next
 	}
 	return res
+}
+
+func (l *DoublyList) SaveToBinary(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	data := l.ToSlice()
+	enc := gob.NewEncoder(f)
+	return enc.Encode(data)
+}
+
+func (l *DoublyList) LoadFromBinary(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := gob.NewDecoder(f)
+	var data []string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+
+	l.head = nil
+	l.tail = nil
+	l.size = 0
+	for _, v := range data {
+		l.PushBack(v)
+	}
+	return nil
+}
+
+func (l *DoublyList) SaveToText(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	data := l.ToSlice()
+	enc := json.NewEncoder(f)
+	return enc.Encode(data)
+}
+
+func (l *DoublyList) LoadFromText(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := json.NewDecoder(f)
+	var data []string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+
+	l.head = nil
+	l.tail = nil
+	l.size = 0
+	for _, v := range data {
+		l.PushBack(v)
+	}
+	return nil
 }

@@ -230,3 +230,53 @@ bool HashMap::load_from_file(const std::string& filename) {
     }
     return true;
 }
+
+bool HashMap::save_to_binary(const std::string& filename) const {
+    std::ofstream f(filename, std::ios::binary);
+    if (!f.is_open()) return false;
+
+    f.write(reinterpret_cast<const char*>(&size_), sizeof(size_));
+
+    for (std::size_t i = 0; i < bucketCount_; ++i) {
+        Node* cur = buckets_[i];
+        while (cur) {
+            size_t klen = cur->key.size();
+            f.write(reinterpret_cast<const char*>(&klen), sizeof(klen));
+            f.write(cur->key.data(), klen);
+
+            size_t vlen = cur->value.size();
+            f.write(reinterpret_cast<const char*>(&vlen), sizeof(vlen));
+            f.write(cur->value.data(), vlen);
+
+            cur = cur->next;
+        }
+    }
+    return true;
+}
+
+bool HashMap::load_from_binary(const std::string& filename) {
+    std::ifstream f(filename, std::ios::binary);
+    if (!f.is_open()) return false;
+
+    clear();
+
+    size_t count = 0;
+    f.read(reinterpret_cast<char*>(&count), sizeof(count));
+
+    for (size_t i = 0; i < count; ++i) {
+        size_t klen = 0;
+        f.read(reinterpret_cast<char*>(&klen), sizeof(klen));
+        std::string key;
+        key.resize(klen);
+        f.read(&key[0], klen);
+
+        size_t vlen = 0;
+        f.read(reinterpret_cast<char*>(&vlen), sizeof(vlen));
+        std::string val;
+        val.resize(vlen);
+        f.read(&val[0], vlen);
+
+        set(key, val);
+    }
+    return true;
+}

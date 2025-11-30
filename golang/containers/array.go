@@ -1,5 +1,11 @@
 package containers
 
+import (
+	"encoding/gob"
+	"encoding/json"
+	"os"
+)
+
 type Array struct {
 	data []string
 }
@@ -78,4 +84,58 @@ func (a *Array) ToSlice() []string {
 	res := make([]string, len(a.data))
 	copy(res, a.data)
 	return res
+}
+
+func (a *Array) SaveToBinary(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	enc := gob.NewEncoder(f)
+	return enc.Encode(a.data)
+}
+
+func (a *Array) LoadFromBinary(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := gob.NewDecoder(f)
+	var data []string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+	a.data = data
+	return nil
+}
+
+func (a *Array) SaveToText(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	enc := json.NewEncoder(f)
+	return enc.Encode(a.data)
+}
+
+func (a *Array) LoadFromText(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := json.NewDecoder(f)
+	var data []string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+	a.data = data
+	return nil
 }

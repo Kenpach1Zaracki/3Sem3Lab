@@ -313,3 +313,39 @@ bool LinkedList::load_from_file(const std::string& filename) {
     }
     return true;
 }
+
+bool LinkedList::save_to_binary(const std::string& filename) const {
+    std::ofstream f(filename, std::ios::binary);
+    if (!f.is_open()) return false;
+
+    f.write(reinterpret_cast<const char*>(&size_), sizeof(size_));
+
+    for (Node* cur = head_; cur; cur = cur->next) {
+        size_t len = cur->person.size();
+        f.write(reinterpret_cast<const char*>(&len), sizeof(len));
+        f.write(cur->person.data(), len);
+    }
+    return true;
+}
+
+bool LinkedList::load_from_binary(const std::string& filename) {
+    std::ifstream f(filename, std::ios::binary);
+    if (!f.is_open()) return false;
+
+    clear();
+
+    size_t count = 0;
+    f.read(reinterpret_cast<char*>(&count), sizeof(count));
+
+    for (size_t i = 0; i < count; ++i) {
+        size_t len = 0;
+        f.read(reinterpret_cast<char*>(&len), sizeof(len));
+        
+        std::string s;
+        s.resize(len);
+        f.read(&s[0], len);
+
+        push_back(s);
+    }
+    return true;
+}

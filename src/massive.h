@@ -32,6 +32,9 @@ public:
 
     bool save_to_file(const std::string& path) const;
 
+    bool save_to_binary(const std::string& path) const;
+    bool load_from_binary(const std::string& path);
+
 private:
     struct Node {
         std::string val;

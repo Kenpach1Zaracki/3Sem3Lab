@@ -1,5 +1,11 @@
 package containers
 
+import (
+	"encoding/gob"
+	"encoding/json"
+	"os"
+)
+
 type bstNode struct {
 	value string
 	left  *bstNode
@@ -158,4 +164,85 @@ func bstInOrder(node *bstNode, out *[]string) {
 	bstInOrder(node.left, out)
 	*out = append(*out, node.value)
 	bstInOrder(node.right, out)
+}
+
+func (t *BST) preOrder() []string {
+	res := make([]string, 0, t.size)
+	bstPreOrder(t.root, &res)
+	return res
+}
+
+func bstPreOrder(node *bstNode, out *[]string) {
+	if node == nil {
+		return
+	}
+	*out = append(*out, node.value)
+	bstPreOrder(node.left, out)
+	bstPreOrder(node.right, out)
+}
+
+func (t *BST) SaveToBinary(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	data := t.preOrder()
+	enc := gob.NewEncoder(f)
+	return enc.Encode(data)
+}
+
+func (t *BST) LoadFromBinary(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := gob.NewDecoder(f)
+	var data []string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+
+	t.root = nil
+	t.size = 0
+	for _, v := range data {
+		t.Insert(v)
+	}
+	return nil
+}
+
+func (t *BST) SaveToText(filename string) error {
+	f, err := os.Create(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	data := t.preOrder()
+	enc := json.NewEncoder(f)
+	return enc.Encode(data)
+}
+
+func (t *BST) LoadFromText(filename string) error {
+	f, err := os.Open(filename)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	dec := json.NewDecoder(f)
+	var data []string
+	if err := dec.Decode(&data); err != nil {
+		return err
+	}
+
+	t.root = nil
+	t.size = 0
+	for _, v := range data {
+		t.Insert(v)
+	}
+	return nil
 }

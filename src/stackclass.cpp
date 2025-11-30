@@ -137,6 +137,27 @@ bool Stack::save_to_file(const std::string& filename) const {
     return true;
 }
 
+bool Stack::save_to_binary(const std::string& filename) const {
+    std::ofstream f(filename, std::ios::binary);
+    if (!f.is_open()) return false;
+
+    f.write(reinterpret_cast<const char*>(&size_), sizeof(size_));
+
+    std::vector<std::string> buf;
+    for (Node* p = top_; p; p = p->next) {
+        buf.push_back(p->person);
+    }
+    // buf[0] is top, buf[last] is bottom.
+    // We want to save bottom -> top.
+    for (int i = static_cast<int>(buf.size()) - 1; i >= 0; --i) {
+        const std::string& s = buf[static_cast<std::size_t>(i)];
+        size_t len = s.size();
+        f.write(reinterpret_cast<const char*>(&len), sizeof(len));
+        f.write(s.data(), len);
+    }
+    return true;
+}
+
 
 // читаем файл строками и пушим в стек по очереди
 // (при условии, что файл был сохранён save_to_file, порядок восстановится)
@@ -148,6 +169,28 @@ bool Stack::load_from_file(const std::string& filename) {
     std::string s;
     while (std::getline(f, s)) {
         // читаем низ->верх и пушим в таком порядке
+        push(s);
+    }
+    return true;
+}
+
+bool Stack::load_from_binary(const std::string& filename) {
+    std::ifstream f(filename, std::ios::binary);
+    if (!f.is_open()) return false;
+
+    clear();
+
+    size_t count = 0;
+    f.read(reinterpret_cast<char*>(&count), sizeof(count));
+
+    for (size_t i = 0; i < count; ++i) {
+        size_t len = 0;
+        f.read(reinterpret_cast<char*>(&len), sizeof(len));
+        
+        std::string s;
+        s.resize(len);
+        f.read(&s[0], len);
+
         push(s);
     }
     return true;
