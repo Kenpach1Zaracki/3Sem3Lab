@@ -1,0 +1,44 @@
+# Build directories
+build/
+*.o
+*.out
+
+# Executables
+app
+tests_bin
+bench_bin
+*.bin
+
+# Coverage files
+*.gcov
+*.gcda
+*.gcno
+*.gcov.html
+coverage.html
+coverage.css
+coverage*.html
+coverage.out
+
+# Test output files
+test_*.txt
+test_*.bin
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Go
+*.test
+*.prof
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.log

@@ -15,12 +15,10 @@ Stack::Node* Stack::new_node(const std::string& v, Node* next) {
 
 // аккуратное копирование с сохранением порядка (низ -> верх такой же)
 void Stack::copy_from(const Stack& other) {
-    // other.top_ -> низ: собираем во временный вектор
     std::vector<std::string> buf;
     for (Node* p = other.top_; p; p = p->next) {
         buf.push_back(p->person);
     }
-    // в buf[0] — вершина other, в buf[last] — низ
     for (auto it = buf.rbegin(); it != buf.rend(); ++it) {
         push(*it);
     }

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "onel.h"
+#include <sstream>
 
 TEST(LinkedListBasic, NewListIsEmpty) {
     LinkedList list;
@@ -126,4 +127,188 @@ TEST(LinkedListIO, SaveAndLoad) {
     EXPECT_EQ(loaded.size(), 2u);
     EXPECT_EQ(*loaded.at(0), "alpha");
     EXPECT_EQ(*loaded.at(1), "beta");
+}
+
+TEST(LinkedListIO, BinarySaveLoad) {
+    LinkedList list;
+    list.push_back("item1");
+    list.push_back("item2");
+    list.push_back("item3");
+    ASSERT_TRUE(list.save_to_binary("test_list.bin"));
+
+    LinkedList loaded;
+    ASSERT_TRUE(loaded.load_from_binary("test_list.bin"));
+    EXPECT_EQ(loaded.size(), 3u);
+    EXPECT_EQ(*loaded.at(0), "item1");
+    EXPECT_EQ(*loaded.at(1), "item2");
+    EXPECT_EQ(*loaded.at(2), "item3");
+}
+
+TEST(LinkedListIO, PrintToStream) {
+    LinkedList list;
+    list.push_back("a");
+    list.push_back("b");
+    list.push_back("c");
+    std::ostringstream oss;
+    list.print(oss);
+    std::string output = oss.str();
+    EXPECT_EQ(output, "a b c");
+}
+
+TEST(LinkedListOps, ConstAccessorsReturnNull) {
+    const LinkedList emptyList;
+    EXPECT_EQ(emptyList.front(), nullptr);
+    EXPECT_EQ(emptyList.back(), nullptr);
+    EXPECT_EQ(emptyList.at(0), nullptr);
+}
+
+TEST(LinkedListOps, MutableAccessors) {
+    LinkedList list;
+    list.push_back("test");
+
+    std::string* frontPtr = list.front();
+    ASSERT_NE(frontPtr, nullptr);
+    *frontPtr = "modified";
+    EXPECT_EQ(*list.front(), "modified");
+}
+
+TEST(LinkedListOps, InsertAfterTail) {
+    LinkedList list;
+    list.push_back("a");
+    list.push_back("b");
+
+    EXPECT_TRUE(list.insert_after(1, "c"));
+    EXPECT_EQ(*list.back(), "c");
+    EXPECT_EQ(list.size(), 3u);
+}
+
+TEST(LinkedListOps, InsertBeforeTail) {
+    LinkedList list;
+    list.push_back("a");
+    list.push_back("c");
+
+    EXPECT_TRUE(list.insert_before(1, "b"));
+    EXPECT_EQ(*list.at(1), "b");
+    EXPECT_EQ(list.size(), 3u);
+}
+
+TEST(LinkedListOps, EraseAfterUpdatingTail) {
+    LinkedList list;
+    list.push_back("a");
+    list.push_back("b");
+
+    EXPECT_TRUE(list.erase_after(0));
+    EXPECT_EQ(list.size(), 1u);
+    EXPECT_EQ(*list.back(), "a");
+    EXPECT_EQ(list.front(), list.back());
+}
+
+TEST(LinkedListOps, EraseBeforeTailWithTwoElements) {
+    LinkedList list;
+    list.push_back("a");
+    list.push_back("b");
+
+    EXPECT_TRUE(list.erase_before_tail());
+    EXPECT_EQ(list.size(), 1u);
+    EXPECT_EQ(*list.front(), "b");
+}
+
+TEST(LinkedListOps, EraseBeforeTailWithMultipleElements) {
+    LinkedList list;
+    list.push_back("a");
+    list.push_back("b");
+    list.push_back("c");
+    list.push_back("d");
+
+    EXPECT_TRUE(list.erase_before_tail());
+    EXPECT_EQ(list.size(), 3u);
+    EXPECT_EQ(*list.at(2), "d");
+    EXPECT_FALSE(list.index_of("c") >= 0);
+}
+
+TEST(LinkedListOps, EraseBeforeTailEmpty) {
+    LinkedList list;
+    EXPECT_FALSE(list.erase_before_tail());
+
+    list.push_back("a");
+    EXPECT_FALSE(list.erase_before_tail());
+}
+
+TEST(LinkedListOps, EraseFirstUpdatingTail) {
+    LinkedList list;
+    list.push_back("a");
+    list.push_back("b");
+
+    EXPECT_TRUE(list.erase_first("b"));
+    EXPECT_EQ(list.size(), 1u);
+    EXPECT_EQ(*list.back(), "a");
+    EXPECT_EQ(list.front(), list.back());
+}
+
+TEST(LinkedListOps, EraseFirstNotFound) {
+    LinkedList list;
+    list.push_back("a");
+    list.push_back("b");
+
+    EXPECT_FALSE(list.erase_first("x"));
+    EXPECT_EQ(list.size(), 2u);
+}
+
+TEST(LinkedListOps, EraseAllUpdatingTail) {
+    LinkedList list;
+    list.push_back("x");
+    list.push_back("a");
+    list.push_back("x");
+    list.push_back("x");
+
+    int removed = list.erase_all("x");
+    EXPECT_EQ(removed, 3);
+    EXPECT_EQ(list.size(), 1u);
+    EXPECT_EQ(*list.front(), "a");
+    EXPECT_EQ(*list.back(), "a");
+}
+
+TEST(LinkedListOps, EraseAllFromHead) {
+    LinkedList list;
+    list.push_back("x");
+    list.push_back("x");
+    list.push_back("a");
+
+    int removed = list.erase_all("x");
+    EXPECT_EQ(removed, 2);
+    EXPECT_EQ(*list.front(), "a");
+}
+
+TEST(LinkedListOps, SelfCopyAssignment) {
+    LinkedList list;
+    list.push_back("a");
+    list = list;
+    EXPECT_EQ(list.size(), 1u);
+    EXPECT_EQ(*list.front(), "a");
+}
+
+TEST(LinkedListOps, SelfMoveAssignment) {
+    LinkedList list;
+    list.push_back("a");
+    LinkedList* ptr = &list;
+    list = std::move(*ptr);
+    EXPECT_EQ(list.size(), 1u);
+    EXPECT_EQ(*list.front(), "a");
+}
+
+TEST(LinkedListOps, PushBackToEmptyList) {
+    LinkedList list;
+    list.push_back("first");
+    EXPECT_EQ(*list.front(), "first");
+    EXPECT_EQ(*list.back(), "first");
+    EXPECT_EQ(list.size(), 1u);
+}
+
+TEST(LinkedListOps, PopFrontMakesEmpty) {
+    LinkedList list;
+    list.push_back("a");
+    EXPECT_TRUE(list.pop_front());
+    EXPECT_TRUE(list.empty());
+    EXPECT_EQ(list.front(), nullptr);
+    EXPECT_EQ(list.back(), nullptr);
 }

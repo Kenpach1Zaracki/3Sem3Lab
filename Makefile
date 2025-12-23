@@ -5,6 +5,10 @@ LDFLAGS  =
 SRC_DIR   = src
 TEST_DIR  = tests
 BENCH_DIR = bench
+BUILD_DIR = build
+OBJ_DIR   = $(BUILD_DIR)/obj
+BIN_DIR   = $(BUILD_DIR)/bin
+COV_DIR   = $(BUILD_DIR)/coverage
 
 
 GTEST_ROOT  = /opt/homebrew/opt/googletest
@@ -23,17 +27,20 @@ SRCS = $(SRC_DIR)/main.cpp \
        $(SRC_DIR)/hashclass.cpp \
        $(SRC_DIR)/bstree.cpp
 
-OBJS   = $(SRCS:.cpp=.o)
-TARGET = app
+OBJS   = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SRCS))
+TARGET = $(BIN_DIR)/app
 
 
 all: $(TARGET)
 
-$(TARGET): $(OBJS)
+$(TARGET): $(OBJS) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-%.o: %.cpp
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+$(OBJ_DIR) $(BIN_DIR) $(COV_DIR):
+	mkdir -p $@
 
 TEST_SRCS = $(TEST_DIR)/test_main.cpp \
             $(TEST_DIR)/test_linkedlist.cpp \
@@ -44,23 +51,30 @@ TEST_SRCS = $(TEST_DIR)/test_main.cpp \
             $(TEST_DIR)/test_hashmap.cpp \
             $(TEST_DIR)/test_bstree.cpp
 
-TEST_OBJS = $(TEST_SRCS:.cpp=.o)
-TEST_BIN  = tests_bin
+TEST_OBJS = $(patsubst $(TEST_DIR)/%.cpp,$(OBJ_DIR)/test_%.o,$(TEST_SRCS))
+TEST_COV_OBJS = $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/cov_%.o,$(filter-out $(SRC_DIR)/main.cpp,$(SRCS)))
+TEST_BIN  = $(BIN_DIR)/tests_bin
 
 GTEST_LIBS = -lgtest -lpthread
 
-tests: CXXFLAGS += --coverage -O0
-tests: LDFLAGS  += --coverage
 tests: $(TEST_BIN)
 
-$(TEST_BIN): $(TEST_OBJS) $(filter-out $(SRC_DIR)/main.o,$(OBJS))
-	$(CXX) $(CXXFLAGS) -o $@ $^ $(GTEST_LIBS) $(LDFLAGS)
+$(TEST_BIN): $(TEST_OBJS) $(TEST_COV_OBJS) | $(BIN_DIR)
+	$(CXX) -std=c++17 --coverage -I$(SRC_DIR) -o $@ $^ $(GTEST_LIBS) -L$(GTEST_ROOT)/lib --coverage
+
+$(OBJ_DIR)/test_%.o: $(TEST_DIR)/%.cpp | $(OBJ_DIR)
+	$(CXX) -std=c++17 --coverage -O0 -I$(SRC_DIR) -I$(GTEST_ROOT)/include -c $< -o $@
+
+$(OBJ_DIR)/cov_%.o: $(SRC_DIR)/%.cpp | $(OBJ_DIR)
+	$(CXX) -std=c++17 --coverage -O0 -I$(SRC_DIR) -c $< -o $@
 
 run_tests: tests
 	./$(TEST_BIN)
 
-coverage: run_tests
-	gcovr --root . --html-details -o coverage.html --filter $(SRC_DIR)/ --gcov-ignore-errors=no_working_dir_found
+coverage: tests | $(COV_DIR)
+	-./$(TEST_BIN)
+	gcovr --root . --html-details -o $(COV_DIR)/coverage.html --filter $(SRC_DIR)/ --gcov-ignore-errors=no_working_dir_found
+	@echo "Coverage report generated: $(COV_DIR)/coverage.html"
 
 BENCH_SRCS = $(BENCH_DIR)/bench_main.cpp \
              $(BENCH_DIR)/bench_linkedlist.cpp \
@@ -71,22 +85,24 @@ BENCH_SRCS = $(BENCH_DIR)/bench_main.cpp \
              $(BENCH_DIR)/bench_hashmap.cpp \
              $(BENCH_DIR)/bench_bstree.cpp
 
-BENCH_OBJS = $(BENCH_SRCS:.cpp=.o)
-BENCH_BIN  = bench_bin
+BENCH_OBJS = $(patsubst $(BENCH_DIR)/%.cpp,$(OBJ_DIR)/bench_%.o,$(BENCH_SRCS))
+BENCH_BIN  = $(BIN_DIR)/bench_bin
 BENCH_LIBS = -lbenchmark -lpthread
 
 bench: $(BENCH_BIN)
 
-$(BENCH_BIN): $(BENCH_OBJS) $(filter-out $(SRC_DIR)/main.o,$(OBJS))
+$(BENCH_BIN): $(BENCH_OBJS) $(filter-out $(OBJ_DIR)/main.o,$(OBJS)) | $(BIN_DIR)
 	$(CXX) $(CXXFLAGS) -o $@ $^ $(BENCH_LIBS) $(LDFLAGS)
+
+$(OBJ_DIR)/bench_%.o: $(BENCH_DIR)/%.cpp | $(OBJ_DIR)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 run_bench: bench
 	./$(BENCH_BIN)
 
 clean:
-	rm -f $(OBJS) $(TARGET) \
-	      $(TEST_OBJS) $(TEST_BIN) \
-	      $(BENCH_OBJS) $(BENCH_BIN)
+	rm -rf $(BUILD_DIR)
+	find . \( -name '*.gcda' -o -name '*.gcno' -o -name '*.gcov' \) -type f -delete || true
 
-	find . \( -name '*.html' -o -name '*.css' -o -name '*.txt' -o -name '*.o' -o -name '*.gcda' -o -name '*.gcno' \) -type f -delete || true
+.PHONY: all tests run_tests coverage bench run_bench clean
 

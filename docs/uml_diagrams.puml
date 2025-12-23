@@ -1,0 +1,331 @@
+@startuml Data Structures UML
+
+' ===== Binary Search Tree =====
+package "Binary Search Tree" {
+    class BSTree {
+        - root_ : Node*
+        - size_ : size_t
+
+        + BSTree()
+        + BSTree(const BSTree& other)
+        + BSTree(BSTree&& other)
+        + operator=(const BSTree& other) : BSTree&
+        + operator=(BSTree&& other) : BSTree&
+        + ~BSTree()
+
+        + empty() : bool
+        + size() : size_t
+        + height() : int
+
+        + insert(value: string) : bool
+        + contains(value: string) : bool
+        + erase(value: string) : bool
+        + min_value() : const string*
+        + max_value() : const string*
+        + clear() : void
+
+        + print_inorder(os: ostream&) : void
+        + print_structure(os: ostream&) : void
+        + save_to_file(filename: string) : bool
+        + load_from_file(filename: string) : bool
+        + save_to_binary(filename: string) : bool
+        + load_from_binary(filename: string) : bool
+
+        - {static} new_node(v: string) : Node*
+        - {static} delete_subtree(node: Node*) : void
+        - {static} copy_subtree(node: Node*) : Node*
+        - {static} calc_size(node: Node*) : size_t
+        - {static} calc_height(node: Node*) : int
+        - {static} insert_rec(node: Node*&, value: string) : bool
+        - {static} contains_rec(node: Node*, value: string) : bool
+        - {static} erase_rec(node: Node*&, value: string) : bool
+        - {static} find_min_node(node: Node*) : Node*
+        - {static} find_max_node(node: Node*) : const Node*
+        - {static} print_inorder_rec(node: Node*, os: ostream&) : void
+        - {static} print_structure_rec(node: Node*, os: ostream&, depth: int) : void
+    }
+
+    class "BSTree::Node" as BSTNode {
+        + value : string
+        + left : Node*
+        + right : Node*
+    }
+
+    BSTree o-- BSTNode : contains
+}
+
+' ===== Hash Map =====
+package "Hash Map" {
+    class HashMap {
+        - buckets_ : Node**
+        - bucketCount_ : size_t
+        - size_ : size_t
+
+        + HashMap(bucketCount: size_t = 1024)
+        + HashMap(const HashMap& other)
+        + HashMap(HashMap&& other)
+        + operator=(const HashMap& other) : HashMap&
+        + operator=(HashMap&& other) : HashMap&
+        + ~HashMap()
+
+        + empty() : bool
+        + size() : size_t
+        + bucket_count() : size_t
+        + contains(key: string) : bool
+        + set(key: string, value: string) : void
+        + get(key: string, outVal: string&) : bool
+        + erase(key: string) : bool
+        + clear() : void
+        + print(os: ostream&) : void
+        + save_to_file(filename: string) : bool
+        + load_from_file(filename: string) : bool
+        + save_to_binary(filename: string) : bool
+        + load_from_binary(filename: string) : bool
+
+        - {static} hash_str(s: string, bucketCount: size_t) : size_t
+        - init_buckets(bucketCount: size_t) : void
+        - free_buckets() : void
+        - copy_from(other: HashMap&) : void
+    }
+
+    class "HashMap::Node" as HashMapNode {
+        + key : string
+        + value : string
+        + next : Node*
+    }
+
+    HashMap o-- HashMapNode : contains
+}
+
+' ===== Hash Set =====
+package "Hash Set" {
+    class HashSet {
+        - buckets_ : Node**
+        - tableSize_ : size_t
+        - size_ : size_t
+
+        + HashSet(tableSize: size_t = 1009)
+        + HashSet(const HashSet& other)
+        + HashSet(HashSet&& other)
+        + operator=(const HashSet& other) : HashSet&
+        + operator=(HashSet&& other) : HashSet&
+        + ~HashSet()
+
+        + empty() : bool
+        + size() : size_t
+        + table_size() : size_t
+        + contains(elem: string) : bool
+        + insert(elem: string) : bool
+        + erase(elem: string) : bool
+        + clear() : void
+        + print(os: ostream&) : void
+        + load_from_file(path: string) : bool
+        + save_to_file(path: string) : bool
+        + save_to_binary(path: string) : bool
+        + load_from_binary(path: string) : bool
+
+        - {static} hash_func(str: string) : unsigned long
+        - init_buckets(tableSize: size_t) : void
+        - free_buckets() : void
+        - copy_from(other: HashSet&) : void
+    }
+
+    class "HashSet::Node" as HashSetNode {
+        + val : string
+        + next : Node*
+    }
+
+    HashSet o-- HashSetNode : contains
+}
+
+' ===== Linked List =====
+package "Singly Linked List" {
+    class LinkedList {
+        - head_ : Node*
+        - tail_ : Node*
+        - size_ : size_t
+
+        + LinkedList()
+        + LinkedList(const LinkedList& other)
+        + LinkedList(LinkedList&& other)
+        + operator=(const LinkedList& other) : LinkedList&
+        + operator=(LinkedList&& other) : LinkedList&
+        + ~LinkedList()
+
+        + empty() : bool
+        + size() : size_t
+        + front() : const string*
+        + front() : string*
+        + back() : const string*
+        + back() : string*
+        + at(index: size_t) : const string*
+        + at(index: size_t) : string*
+
+        + push_front(v: string) : void
+        + push_back(v: string) : void
+        + pop_front() : bool
+        + pop_back() : bool
+        + insert_after(index: size_t, v: string) : bool
+        + insert_before(index: size_t, v: string) : bool
+        + erase_after(index: size_t) : bool
+        + erase_before_tail() : bool
+        + index_of(x: string) : int
+        + erase_first(x: string) : bool
+        + erase_all(x: string) : int
+        + clear() : void
+        + print(os: ostream&) : void
+        + save_to_file(filename: string) : bool
+        + load_from_file(filename: string) : bool
+        + save_to_binary(filename: string) : bool
+        + load_from_binary(filename: string) : bool
+
+        - {static} new_node(v: string, next: Node* = nullptr) : Node*
+        - node_at(index: size_t) : Node*
+        - copy_from(other: LinkedList&) : void
+    }
+
+    class "LinkedList::Node" as LinkedListNode {
+        + person : string
+        + next : Node*
+    }
+
+    LinkedList o-- LinkedListNode : contains
+}
+
+' ===== Doubly Linked List =====
+package "Doubly Linked List" {
+    class DLinkedList {
+        - head_ : Node*
+        - tail_ : Node*
+        - size_ : size_t
+
+        + DLinkedList()
+        + DLinkedList(const DLinkedList& other)
+        + DLinkedList(DLinkedList&& other)
+        + operator=(const DLinkedList& other) : DLinkedList&
+        + operator=(DLinkedList&& other) : DLinkedList&
+        + ~DLinkedList()
+
+        + empty() : bool
+        + size() : size_t
+        + front() : const string*
+        + front() : string*
+        + back() : const string*
+        + back() : string*
+        + at(index: size_t) : const string*
+        + at(index: size_t) : string*
+
+        + push_front(v: string) : void
+        + push_back(v: string) : void
+        + pop_front() : bool
+        + pop_back() : bool
+        + insert_after(index: size_t, v: string) : bool
+        + insert_before(index: size_t, v: string) : bool
+        + erase_after(index: size_t) : bool
+        + erase_before(index: size_t) : bool
+        + index_of(x: string) : int
+        + erase_first(x: string) : bool
+        + erase_all(x: string) : int
+        + clear() : void
+        + print(os: ostream&) : void
+        + save_to_file(filename: string) : bool
+        + load_from_file(filename: string) : bool
+        + save_to_binary(filename: string) : bool
+        + load_from_binary(filename: string) : bool
+
+        - {static} new_node(v: string, p: Node* = nullptr, n: Node* = nullptr) : Node*
+        - node_at(index: size_t) : Node*
+        - copy_from(other: DLinkedList&) : void
+    }
+
+    class "DLinkedList::Node" as DLinkedListNode {
+        + person : string
+        + prev : Node*
+        + next : Node*
+    }
+
+    DLinkedList o-- DLinkedListNode : contains
+}
+
+' ===== Queue =====
+package "Queue (FIFO)" {
+    class Queue {
+        - head_ : Node*
+        - tail_ : Node*
+        - size_ : size_t
+
+        + Queue()
+        + Queue(const Queue& other)
+        + Queue(Queue&& other)
+        + operator=(const Queue& other) : Queue&
+        + operator=(Queue&& other) : Queue&
+        + ~Queue()
+
+        + empty() : bool
+        + size() : size_t
+        + front() : const string*
+        + front() : string*
+        + back() : const string*
+        + back() : string*
+
+        + push(v: string) : void
+        + pop(out: string* = nullptr) : bool
+        + clear() : void
+        + print(os: ostream&) : void
+        + save_to_file(filename: string) : bool
+        + load_from_file(filename: string) : bool
+        + save_to_binary(filename: string) : bool
+        + load_from_binary(filename: string) : bool
+
+        - {static} new_node(v: string, next: Node* = nullptr) : Node*
+        - copy_from(other: Queue&) : void
+    }
+
+    class "Queue::Node" as QueueNode {
+        + person : string
+        + next : Node*
+    }
+
+    Queue o-- QueueNode : contains
+}
+
+' ===== Stack =====
+package "Stack (LIFO)" {
+    class Stack {
+        - top_ : Node*
+        - size_ : size_t
+
+        + Stack()
+        + Stack(const Stack& other)
+        + Stack(Stack&& other)
+        + operator=(const Stack& other) : Stack&
+        + operator=(Stack&& other) : Stack&
+        + ~Stack()
+
+        + empty() : bool
+        + size() : size_t
+        + peek() : const string*
+        + peek() : string*
+
+        + push(v: string) : void
+        + pop(out: string* = nullptr) : bool
+        + clear() : void
+        + print(os: ostream&) : void
+        + save_to_file(filename: string) : bool
+        + load_from_file(filename: string) : bool
+        + save_to_binary(filename: string) : bool
+        + load_from_binary(filename: string) : bool
+
+        - {static} new_node(v: string, next: Node* = nullptr) : Node*
+        - copy_from(other: Stack&) : void
+    }
+
+    class "Stack::Node" as StackNode {
+        + person : string
+        + next : Node*
+    }
+
+    Stack o-- StackNode : contains
+}
+
+@enduml

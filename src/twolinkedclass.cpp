@@ -286,9 +286,11 @@ void DLinkedList::clear() noexcept {
 
 
 void DLinkedList::print(std::ostream& os) const {
-    int i = 0;
-    for (Node* cur = head_; cur; cur = cur->next, ++i) {
-        os << i << ") " << cur->person << '\n';
+    bool first = true;
+    for (Node* cur = head_; cur; cur = cur->next) {
+        if (!first) os << ' ';
+        os << cur->person;
+        first = false;
     }
 }
 
