@@ -1,4 +1,4 @@
-CXX      = clang++
+CXX      = g++
 CXXFLAGS = -std=c++17
 LDFLAGS  =
 
@@ -60,7 +60,7 @@ run_tests: tests
 	./$(TEST_BIN)
 
 coverage: run_tests
-	gcovr --root . --html-details -o coverage.html --exclude $(TEST_DIR) --exclude $(BENCH_DIR)
+	gcovr --root . --html-details -o coverage.html --filter $(SRC_DIR)/ --gcov-ignore-errors=no_working_dir_found
 
 BENCH_SRCS = $(BENCH_DIR)/bench_main.cpp \
              $(BENCH_DIR)/bench_linkedlist.cpp \

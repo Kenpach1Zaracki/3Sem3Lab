@@ -1,0 +1,267 @@
+        -:    0:Source:src/massiveclass.cpp
+        -:    1:#include "massive.h"
+        -:    2:
+        -:    3:#include <fstream>
+        -:    4:#include <ostream>
+        -:    5:
+       20:    6:unsigned long HashSet::hash_func(const std::string& str) {
+       20:    7:    unsigned long hash = 5381;
+       72:    8:    for (char c : str) {
+       32:    9:        hash = ((hash << 5) + hash) + static_cast<unsigned long>(c); // hash * 33 + c
+        -:   10:    }
+       20:   11:    return hash;
+        -:   12:}
+        -:   13:
+       10:   14:void HashSet::init_buckets(std::size_t tableSize) {
+       10:   15:    tableSize_ = tableSize;
+       10:   16:    size_ = 0;
+      10*:   17:    buckets_ = new Node*[tableSize_];
+    10100:   18:    for (std::size_t i = 0; i < tableSize_; ++i) {
+    10090:   19:        buckets_[i] = nullptr;
+        -:   20:    }
+       10:   21:}
+        -:   22:
+       11:   23:void HashSet::free_buckets() noexcept {
+       11:   24:    if (!buckets_) return;
+    10100:   25:    for (std::size_t i = 0; i < tableSize_; ++i) {
+    10090:   26:        Node* curr = buckets_[i];
+    10101:   27:        while (curr) {
+       11:   28:            Node* tmp = curr;
+       11:   29:            curr = curr->next;
+       11:   30:            delete tmp;
+        -:   31:        }
+        -:   32:    }
+       10:   33:    delete[] buckets_;
+       10:   34:    buckets_ = nullptr;
+       10:   35:    tableSize_ = 0;
+       10:   36:    size_ = 0;
+        -:   37:}
+        -:   38:
+        2:   39:void HashSet::copy_from(const HashSet& other) {
+        2:   40:    init_buckets(other.tableSize_);
+     2020:   41:    for (std::size_t i = 0; i < other.tableSize_; ++i) {
+     2018:   42:        Node* curr = other.buckets_[i];
+     2018:   43:        Node* prevNew = nullptr;
+     2022:   44:        while (curr) {
+       4*:   45:            Node* newNode = new Node{curr->val, nullptr};
+        4:   46:            if (!buckets_[i]) {
+        4:   47:                buckets_[i] = newNode;
+        -:   48:            } else {
+    #####:   49:                prevNew->next = newNode;
+        -:   50:            }
+        4:   51:            prevNew = newNode;
+        4:   52:            curr = curr->next;
+        4:   53:            ++size_;
+        -:   54:        }
+        -:   55:    }
+        2:   56:}
+        -:   57:
+        6:   58:HashSet::HashSet(std::size_t tableSize)
+        6:   59:    : buckets_(nullptr)
+        6:   60:    , tableSize_(0)
+        6:   61:    , size_(0) {
+        6:   62:    init_buckets(tableSize);
+        6:   63:}
+        -:   64:
+        1:   65:HashSet::HashSet(const HashSet& other)
+        1:   66:    : buckets_(nullptr)
+        1:   67:    , tableSize_(0)
+        1:   68:    , size_(0) {
+        1:   69:    copy_from(other);
+        1:   70:}
+        -:   71:
+        1:   72:HashSet::HashSet(HashSet&& other) noexcept
+        1:   73:    : buckets_(other.buckets_)
+        1:   74:    , tableSize_(other.tableSize_)
+        1:   75:    , size_(other.size_) {
+        1:   76:    other.buckets_ = nullptr;
+        1:   77:    other.tableSize_ = 0;
+        1:   78:    other.size_ = 0;
+        1:   79:}
+        -:   80:
+        1:   81:HashSet& HashSet::operator=(const HashSet& other) {
+        1:   82:    if (this != &other) {
+        1:   83:        free_buckets();
+        1:   84:        copy_from(other);
+        -:   85:    }
+        1:   86:    return *this;
+        -:   87:}
+        -:   88:
+    #####:   89:HashSet& HashSet::operator=(HashSet&& other) noexcept {
+    #####:   90:    if (this != &other) {
+    #####:   91:        free_buckets();
+    #####:   92:        buckets_ = other.buckets_;
+    #####:   93:        tableSize_ = other.tableSize_;
+    #####:   94:        size_ = other.size_;
+    #####:   95:        other.buckets_ = nullptr;
+    #####:   96:        other.tableSize_ = 0;
+    #####:   97:        other.size_ = 0;
+        -:   98:    }
+    #####:   99:    return *this;
+        -:  100:}
+        -:  101:
+        8:  102:HashSet::~HashSet() {
+        8:  103:    free_buckets();
+        8:  104:}
+        -:  105:
+        -:  106:
+        2:  107:bool HashSet::empty() const noexcept {
+        2:  108:    return size_ == 0;
+        -:  109:}
+        -:  110:
+        5:  111:std::size_t HashSet::size() const noexcept {
+        5:  112:    return size_;
+        -:  113:}
+        -:  114:
+        1:  115:std::size_t HashSet::table_size() const noexcept {
+        1:  116:    return tableSize_;
+        -:  117:}
+        -:  118:
+        -:  119:
+        9:  120:bool HashSet::contains(const std::string& elem) const {
+       9*:  121:    if (!buckets_ || tableSize_ == 0) return false;
+        9:  122:    std::size_t idx = hash_func(elem) % tableSize_;
+        9:  123:    Node* curr = buckets_[idx];
+        9:  124:    while (curr) {
+        7:  125:        if (curr->val == elem) return true;
+    #####:  126:        curr = curr->next;
+        -:  127:    }
+        2:  128:    return false;
+        -:  129:}
+        -:  130:
+        9:  131:bool HashSet::insert(const std::string& elem) {
+       9*:  132:    if (!buckets_ || tableSize_ == 0) return false;
+        -:  133:
+        9:  134:    std::size_t idx = hash_func(elem) % tableSize_;
+        9:  135:    Node* curr = buckets_[idx];
+        9:  136:    while (curr) {
+        1:  137:        if (curr->val == elem) {
+        -:  138:            // уже есть
+        1:  139:            return false;
+        -:  140:        }
+    #####:  141:        curr = curr->next;
+        -:  142:    }
+       8*:  143:    Node* newNode = new Node{elem, buckets_[idx]};
+        8:  144:    buckets_[idx] = newNode;
+        8:  145:    ++size_;
+        8:  146:    return true;
+        -:  147:}
+        -:  148:
+        2:  149:bool HashSet::erase(const std::string& elem) {
+       2*:  150:    if (!buckets_ || tableSize_ == 0) return false;
+        -:  151:
+        2:  152:    std::size_t idx = hash_func(elem) % tableSize_;
+        2:  153:    Node* curr = buckets_[idx];
+        2:  154:    Node* prev = nullptr;
+        -:  155:
+        2:  156:    while (curr) {
+        1:  157:        if (curr->val == elem) {
+        1:  158:            if (prev) {
+    #####:  159:                prev->next = curr->next;
+        -:  160:            } else {
+        1:  161:                buckets_[idx] = curr->next;
+        -:  162:            }
+        1:  163:            delete curr;
+        1:  164:            --size_;
+        1:  165:            return true;
+        -:  166:        }
+    #####:  167:        prev = curr;
+    #####:  168:        curr = curr->next;
+        -:  169:    }
+        1:  170:    return false;
+        -:  171:}
+        -:  172:
+        2:  173:void HashSet::clear() noexcept {
+        2:  174:    free_buckets();
+        -:  175:    // пересоздаём бакеты с тем же размером
+        2:  176:    if (tableSize_ == 0) {
+        -:  177:        // на всякий случай, но обычно сюда не попадём
+        2:  178:        init_buckets(1009);
+        -:  179:    } else {
+    #####:  180:        init_buckets(tableSize_);
+        -:  181:    }
+        2:  182:}
+        -:  183:
+        -:  184:
+    #####:  185:void HashSet::print(std::ostream& os) const {
+    #####:  186:    bool emptyFlag = true;
+    #####:  187:    for (std::size_t i = 0; i < tableSize_; ++i) {
+    #####:  188:        Node* curr = buckets_[i];
+    #####:  189:        while (curr) {
+    #####:  190:            os << "  • " << curr->val << '\n';
+    #####:  191:            curr = curr->next;
+    #####:  192:            emptyFlag = false;
+        -:  193:        }
+        -:  194:    }
+    #####:  195:    if (emptyFlag) {
+    #####:  196:        os << "(пусто)\n";
+        -:  197:    }
+    #####:  198:}
+        -:  199:
+        1:  200:bool HashSet::load_from_file(const std::string& path) {
+        1:  201:    std::ifstream fin(path);
+        1:  202:    if (!fin.is_open()) {
+    #####:  203:        return false;
+        -:  204:    }
+        1:  205:    clear();
+        1:  206:    std::string word;
+        3:  207:    while (fin >> word) {
+        2:  208:        insert(word);
+        -:  209:    }
+        1:  210:    return true;
+        1:  211:}
+        -:  212:
+        1:  213:bool HashSet::save_to_file(const std::string& path) const {
+        1:  214:    std::ofstream fout(path);
+        1:  215:    if (!fout.is_open()) {
+    #####:  216:        return false;
+        -:  217:    }
+     1010:  218:    for (std::size_t i = 0; i < tableSize_; ++i) {
+     1009:  219:        Node* curr = buckets_[i];
+     1011:  220:        while (curr) {
+        2:  221:            fout << curr->val << '\n';
+        2:  222:            curr = curr->next;
+        -:  223:        }
+        -:  224:    }
+        1:  225:    return true;
+        1:  226:}
+        -:  227:
+    #####:  228:bool HashSet::save_to_binary(const std::string& path) const {
+    #####:  229:    std::ofstream f(path, std::ios::binary);
+    #####:  230:    if (!f.is_open()) return false;
+        -:  231:
+    #####:  232:    f.write(reinterpret_cast<const char*>(&size_), sizeof(size_));
+        -:  233:
+    #####:  234:    for (std::size_t i = 0; i < tableSize_; ++i) {
+    #####:  235:        Node* curr = buckets_[i];
+    #####:  236:        while (curr) {
+    #####:  237:            size_t len = curr->val.size();
+    #####:  238:            f.write(reinterpret_cast<const char*>(&len), sizeof(len));
+    #####:  239:            f.write(curr->val.data(), len);
+    #####:  240:            curr = curr->next;
+        -:  241:        }
+        -:  242:    }
+    #####:  243:    return true;
+    #####:  244:}
+        -:  245:
+    #####:  246:bool HashSet::load_from_binary(const std::string& path) {
+    #####:  247:    std::ifstream f(path, std::ios::binary);
+    #####:  248:    if (!f.is_open()) return false;
+        -:  249:
+    #####:  250:    clear();
+        -:  251:
+    #####:  252:    size_t count = 0;
+    #####:  253:    f.read(reinterpret_cast<char*>(&count), sizeof(count));
+        -:  254:
+    #####:  255:    for (size_t i = 0; i < count; ++i) {
+    #####:  256:        size_t len = 0;
+    #####:  257:        f.read(reinterpret_cast<char*>(&len), sizeof(len));
+        -:  258:        
+    #####:  259:        std::string s;
+    #####:  260:        s.resize(len);
+    #####:  261:        f.read(&s[0], len);
+        -:  262:
+    #####:  263:        insert(s);
+    #####:  264:    }
+    #####:  265:    return true;
+    #####:  266:}

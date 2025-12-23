@@ -1,0 +1,352 @@
+        -:    0:Source:src/onelinkedclass.cpp
+        -:    1:#include "onel.h"
+        -:    2:#include <fstream>
+        -:    3:#include <ostream>
+        -:    4:
+       26:    5:LinkedList::Node* LinkedList::new_node(const std::string& v, Node* next) {
+      26*:    6:    Node* n = new Node;
+       26:    7:    n->person = v;
+       26:    8:    n->next   = next;
+       26:    9:    return n;
+        -:   10:}
+        -:   11:
+       13:   12:LinkedList::Node* LinkedList::node_at(std::size_t index) const {
+       13:   13:    Node* cur = head_;
+       29:   14:    while (cur && index--) {
+       16:   15:        cur = cur->next;
+        -:   16:    }
+       13:   17:    return cur;
+        -:   18:}
+        -:   19:
+        2:   20:void LinkedList::copy_from(const LinkedList& other) {
+        2:   21:    Node* cur = other.head_;
+        6:   22:    while (cur) {
+        4:   23:        push_back(cur->person);
+        4:   24:        cur = cur->next;
+        -:   25:    }
+        2:   26:}
+        -:   27:
+       10:   28:LinkedList::LinkedList()
+       10:   29:    : head_(nullptr)
+       10:   30:    , tail_(nullptr)
+       10:   31:    , size_(0) {
+       10:   32:}
+        -:   33:
+        1:   34:LinkedList::LinkedList(const LinkedList& other)
+        1:   35:    : head_(nullptr)
+        1:   36:    , tail_(nullptr)
+        1:   37:    , size_(0) {
+        1:   38:    copy_from(other);
+        1:   39:}
+        -:   40:
+        1:   41:LinkedList::LinkedList(LinkedList&& other) noexcept
+        1:   42:    : head_(other.head_)
+        1:   43:    , tail_(other.tail_)
+        1:   44:    , size_(other.size_) {
+        1:   45:    other.head_ = nullptr;
+        1:   46:    other.tail_ = nullptr;
+        1:   47:    other.size_ = 0;
+        1:   48:}
+        -:   49:
+        1:   50:LinkedList& LinkedList::operator=(const LinkedList& other) {
+        1:   51:    if (this != &other) {
+        1:   52:        clear();
+        1:   53:        copy_from(other);
+        -:   54:    }
+        1:   55:    return *this;
+        -:   56:}
+        -:   57:
+        1:   58:LinkedList& LinkedList::operator=(LinkedList&& other) noexcept {
+        1:   59:    if (this != &other) {
+        1:   60:        clear();
+        1:   61:        head_ = other.head_;
+        1:   62:        tail_ = other.tail_;
+        1:   63:        size_ = other.size_;
+        1:   64:        other.head_ = nullptr;
+        1:   65:        other.tail_ = nullptr;
+        1:   66:        other.size_ = 0;
+        -:   67:    }
+        1:   68:    return *this;
+        -:   69:}
+        -:   70:
+       12:   71:LinkedList::~LinkedList() {
+       12:   72:    clear();
+       12:   73:}
+        -:   74:
+        -:   75:
+        5:   76:bool LinkedList::empty() const noexcept {
+        5:   77:    return size_ == 0;
+        -:   78:}
+        -:   79:
+       10:   80:std::size_t LinkedList::size() const noexcept {
+       10:   81:    return size_;
+        -:   82:}
+        -:   83:
+        -:   84:
+    #####:   85:const std::string* LinkedList::front() const noexcept {
+    #####:   86:    return head_ ? &head_->person : nullptr;
+        -:   87:}
+        -:   88:
+        8:   89:std::string* LinkedList::front() noexcept {
+        8:   90:    return head_ ? &head_->person : nullptr;
+        -:   91:}
+        -:   92:
+    #####:   93:const std::string* LinkedList::back() const noexcept {
+    #####:   94:    return tail_ ? &tail_->person : nullptr;
+        -:   95:}
+        -:   96:
+        6:   97:std::string* LinkedList::back() noexcept {
+        6:   98:    return tail_ ? &tail_->person : nullptr;
+        -:   99:}
+        -:  100:
+    #####:  101:const std::string* LinkedList::at(std::size_t index) const {
+    #####:  102:    Node* n = node_at(index);
+    #####:  103:    return n ? &n->person : nullptr;
+        -:  104:}
+        -:  105:
+        9:  106:std::string* LinkedList::at(std::size_t index) {
+        9:  107:    Node* n = node_at(index);
+        9:  108:    return n ? &n->person : nullptr;
+        -:  109:}
+        -:  110:
+        -:  111:
+        2:  112:void LinkedList::push_front(const std::string& v) {
+        2:  113:    Node* n = new_node(v, head_);
+        2:  114:    head_ = n;
+        2:  115:    if (!tail_) {
+    #####:  116:        tail_ = n;
+        -:  117:    }
+        2:  118:    ++size_;
+        2:  119:}
+        -:  120:
+       23:  121:void LinkedList::push_back(const std::string& v) {
+       23:  122:    Node* n = new_node(v, nullptr);
+       23:  123:    if (!tail_) {
+       10:  124:        head_ = tail_ = n;
+        -:  125:    } else {
+       13:  126:        tail_->next = n;
+       13:  127:        tail_ = n;
+        -:  128:    }
+       23:  129:    ++size_;
+       23:  130:}
+        -:  131:
+        3:  132:bool LinkedList::pop_front() {
+        3:  133:    if (!head_) return false;
+        2:  134:    Node* t = head_;
+        2:  135:    head_ = head_->next;
+        2:  136:    if (!head_) {
+    #####:  137:        tail_ = nullptr;
+        -:  138:    }
+        2:  139:    delete t;
+        2:  140:    --size_;
+        2:  141:    return true;
+        -:  142:}
+        -:  143:
+        3:  144:bool LinkedList::pop_back() {
+        3:  145:    if (!head_) return false;
+        2:  146:    if (!head_->next) { 
+        1:  147:        delete head_;
+        1:  148:        head_ = tail_ = nullptr;
+        1:  149:        size_ = 0;
+        1:  150:        return true;
+        -:  151:    }
+        1:  152:    Node* prev = head_;
+        1:  153:    while (prev->next && prev->next->next) {
+    #####:  154:        prev = prev->next;
+        -:  155:    }
+        1:  156:    delete prev->next;
+        1:  157:    prev->next = nullptr;
+        1:  158:    tail_ = prev;
+        1:  159:    --size_;
+        1:  160:    return true;
+        -:  161:}
+        -:  162:
+        2:  163:bool LinkedList::insert_after(std::size_t index, const std::string& v) {
+        2:  164:    Node* pos = node_at(index);
+        2:  165:    if (!pos) return false;
+        1:  166:    Node* n = new_node(v, pos->next);
+        1:  167:    pos->next = n;
+        1:  168:    if (pos == tail_) {
+    #####:  169:        tail_ = n;
+        -:  170:    }
+        1:  171:    ++size_;
+        1:  172:    return true;
+        -:  173:}
+        -:  174:
+        2:  175:bool LinkedList::insert_before(std::size_t index, const std::string& v) {
+        2:  176:    if (index == 0) {
+        1:  177:        push_front(v);
+        1:  178:        return true;
+        -:  179:    }
+        1:  180:    Node* prev = node_at(index - 1);
+        1:  181:    if (!prev) return false;
+    #####:  182:    Node* n = new_node(v, prev->next);
+    #####:  183:    prev->next = n;
+    #####:  184:    if (prev == tail_) {
+    #####:  185:        tail_ = n;
+        -:  186:    }
+    #####:  187:    ++size_;
+    #####:  188:    return true;
+        -:  189:}
+        -:  190:
+        1:  191:bool LinkedList::erase_after(std::size_t index) {
+        1:  192:    Node* pos = node_at(index);
+       1*:  193:    if (!pos || !pos->next) return false;
+        1:  194:    Node* t = pos->next;
+        1:  195:    pos->next = t->next;
+        1:  196:    if (t == tail_) {
+    #####:  197:        tail_ = pos;
+        -:  198:    }
+        1:  199:    delete t;
+        1:  200:    --size_;
+        1:  201:    return true;
+        -:  202:}
+        -:  203:
+        1:  204:bool LinkedList::erase_before_tail() {
+       1*:  205:    if (!head_ || !head_->next) return false; // 0 или 1 элемент
+        1:  206:    if (head_->next == tail_) {
+        -:  207:        // два элемента -> удалить голову
+    #####:  208:        return pop_front();
+        -:  209:    }
+        1:  210:    Node* prev = head_;
+        1:  211:    while (prev->next && prev->next->next != tail_) {
+    #####:  212:        prev = prev->next;
+        -:  213:    }
+        1:  214:    Node* t = prev->next; // узел перед хвостом
+        1:  215:    prev->next = t->next;
+        1:  216:    delete t;
+        1:  217:    --size_;
+        1:  218:    return true;
+        -:  219:}
+        -:  220:
+        3:  221:int LinkedList::index_of(const std::string& x) const {
+        3:  222:    int idx = 0;
+       11:  223:    for (Node* cur = head_; cur; cur = cur->next, ++idx) {
+        9:  224:        if (cur->person == x) return idx;
+        -:  225:    }
+        2:  226:    return -1;
+        -:  227:}
+        -:  228:
+        1:  229:bool LinkedList::erase_first(const std::string& x) {
+       1*:  230:    if (!head_) return false;
+        -:  231:
+        1:  232:    if (head_->person == x) {
+        1:  233:        return pop_front();
+        -:  234:    }
+        -:  235:
+    #####:  236:    Node* prev = head_;
+    #####:  237:    while (prev->next && prev->next->person != x) {
+    #####:  238:        prev = prev->next;
+        -:  239:    }
+    #####:  240:    if (!prev->next) return false;
+        -:  241:
+    #####:  242:    Node* t = prev->next;
+    #####:  243:    prev->next = t->next;
+    #####:  244:    if (t == tail_) {
+    #####:  245:        tail_ = prev;
+        -:  246:    }
+    #####:  247:    delete t;
+    #####:  248:    --size_;
+    #####:  249:    return true;
+        -:  250:}
+        -:  251:
+        1:  252:int LinkedList::erase_all(const std::string& x) {
+        1:  253:    int cnt = 0;
+       1*:  254:    while (head_ && head_->person == x) {
+    #####:  255:        pop_front();
+    #####:  256:        ++cnt;
+        -:  257:    }
+       1*:  258:    if (!head_) return cnt;
+        -:  259:
+        1:  260:    Node* cur = head_;
+        4:  261:    while (cur->next) {
+        3:  262:        if (cur->next->person == x) {
+        2:  263:            Node* t = cur->next;
+        2:  264:            cur->next = t->next;
+        2:  265:            if (t == tail_) {
+        1:  266:                tail_ = cur;
+        -:  267:            }
+        2:  268:            delete t;
+        2:  269:            --size_;
+        2:  270:            ++cnt;
+        -:  271:        } else {
+        1:  272:            cur = cur->next;
+        -:  273:        }
+        -:  274:    }
+        1:  275:    return cnt;
+        -:  276:}
+        -:  277:
+       15:  278:void LinkedList::clear() noexcept {
+       33:  279:    while (head_) {
+       18:  280:        Node* t = head_;
+       18:  281:        head_ = head_->next;
+       18:  282:        delete t;
+        -:  283:    }
+       15:  284:    head_ = tail_ = nullptr;
+       15:  285:    size_ = 0;
+       15:  286:}
+        -:  287:
+    #####:  288:void LinkedList::print(std::ostream& os) const {
+    #####:  289:    bool first = true;
+    #####:  290:    for (Node* cur = head_; cur; cur = cur->next) {
+    #####:  291:        if (!first) os << ' ';
+    #####:  292:        os << cur->person;
+    #####:  293:        first = false;
+        -:  294:    }
+    #####:  295:}
+        -:  296:
+        1:  297:bool LinkedList::save_to_file(const std::string& filename) const {
+        1:  298:    std::ofstream f(filename);
+       1*:  299:    if (!f.is_open()) return false;
+        3:  300:    for (Node* cur = head_; cur; cur = cur->next) {
+        2:  301:        f << cur->person << '\n';
+        -:  302:    }
+        1:  303:    return true;
+        1:  304:}
+        -:  305:
+        1:  306:bool LinkedList::load_from_file(const std::string& filename) {
+        1:  307:    std::ifstream f(filename);
+       1*:  308:    if (!f.is_open()) return false;
+        1:  309:    clear();
+        1:  310:    std::string line;
+        3:  311:    while (std::getline(f, line)) {
+        2:  312:        push_back(line);
+        -:  313:    }
+        1:  314:    return true;
+        1:  315:}
+        -:  316:
+    #####:  317:bool LinkedList::save_to_binary(const std::string& filename) const {
+    #####:  318:    std::ofstream f(filename, std::ios::binary);
+    #####:  319:    if (!f.is_open()) return false;
+        -:  320:
+    #####:  321:    f.write(reinterpret_cast<const char*>(&size_), sizeof(size_));
+        -:  322:
+    #####:  323:    for (Node* cur = head_; cur; cur = cur->next) {
+    #####:  324:        size_t len = cur->person.size();
+    #####:  325:        f.write(reinterpret_cast<const char*>(&len), sizeof(len));
+    #####:  326:        f.write(cur->person.data(), len);
+        -:  327:    }
+    #####:  328:    return true;
+    #####:  329:}
+        -:  330:
+    #####:  331:bool LinkedList::load_from_binary(const std::string& filename) {
+    #####:  332:    std::ifstream f(filename, std::ios::binary);
+    #####:  333:    if (!f.is_open()) return false;
+        -:  334:
+    #####:  335:    clear();
+        -:  336:
+    #####:  337:    size_t count = 0;
+    #####:  338:    f.read(reinterpret_cast<char*>(&count), sizeof(count));
+        -:  339:
+    #####:  340:    for (size_t i = 0; i < count; ++i) {
+    #####:  341:        size_t len = 0;
+    #####:  342:        f.read(reinterpret_cast<char*>(&len), sizeof(len));
+        -:  343:        
+    #####:  344:        std::string s;
+    #####:  345:        s.resize(len);
+    #####:  346:        f.read(&s[0], len);
+        -:  347:
+    #####:  348:        push_back(s);
+    #####:  349:    }
+    #####:  350:    return true;
+    #####:  351:}

@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "bstree.h"
+#include <sstream>
 
 TEST(BSTreeBasic, NewTreeEmpty) {
     BSTree t;
@@ -88,4 +89,74 @@ TEST(BSTreeIO, SaveAndLoad) {
     EXPECT_TRUE(other.contains("a"));
     EXPECT_TRUE(other.contains("b"));
     EXPECT_TRUE(other.contains("c"));
+}
+
+TEST(BSTreeOps, ClearTree) {
+    BSTree t;
+    t.insert("a");
+    t.insert("b");
+    t.insert("c");
+    EXPECT_EQ(t.size(), 3u);
+    t.clear();
+    EXPECT_TRUE(t.empty());
+    EXPECT_EQ(t.size(), 0u);
+}
+
+TEST(BSTreePrint, PrintInorder) {
+    BSTree t;
+    t.insert("b");
+    t.insert("a");
+    t.insert("c");
+    std::ostringstream os;
+    t.print_inorder(os);
+    EXPECT_FALSE(os.str().empty());
+}
+
+TEST(BSTreePrint, PrintStructure) {
+    BSTree t;
+    t.insert("b");
+    t.insert("a");
+    t.insert("c");
+    std::ostringstream os;
+    t.print_structure(os);
+    EXPECT_FALSE(os.str().empty());
+}
+
+TEST(BSTreeIO, BinarySaveLoad) {
+    BSTree t;
+    t.insert("x");
+    t.insert("y");
+    t.insert("z");
+    ASSERT_TRUE(t.save_to_binary("test_bst.bin"));
+
+    BSTree other;
+    ASSERT_TRUE(other.load_from_binary("test_bst.bin"));
+    EXPECT_EQ(other.size(), 3u);
+    EXPECT_TRUE(other.contains("x"));
+    EXPECT_TRUE(other.contains("y"));
+    EXPECT_TRUE(other.contains("z"));
+}
+
+TEST(BSTreeErase, NodeWithLeftChildOnly) {
+    BSTree t;
+    t.insert("c");
+    t.insert("a");
+    t.insert("b");
+    EXPECT_TRUE(t.erase("c"));
+    EXPECT_FALSE(t.contains("c"));
+    EXPECT_TRUE(t.contains("a"));
+    EXPECT_TRUE(t.contains("b"));
+}
+
+TEST(BSTreeErase, NodeWithTwoChildren) {
+    BSTree t;
+    t.insert("b");
+    t.insert("a");
+    t.insert("d");
+    t.insert("c");
+    t.insert("e");
+    EXPECT_TRUE(t.erase("d"));
+    EXPECT_FALSE(t.contains("d"));
+    EXPECT_TRUE(t.contains("c"));
+    EXPECT_TRUE(t.contains("e"));
 }

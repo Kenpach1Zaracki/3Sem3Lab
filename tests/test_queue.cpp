@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
 #include "queue.h"
+#include <sstream>
 
 TEST(QueueBasic, NewQueueEmpty) {
     Queue q;
@@ -69,4 +70,53 @@ TEST(QueueIO, SaveAndLoad) {
     EXPECT_EQ(out, "1");
     ASSERT_TRUE(other.pop(&out));
     EXPECT_EQ(out, "2");
+}
+
+TEST(QueueOps, ModifyFrontBack) {
+    Queue q;
+    q.push("test");
+    std::string* f = q.front();
+    ASSERT_NE(f, nullptr);
+    *f = "modified_front";
+    EXPECT_EQ(*q.front(), "modified_front");
+
+    q.push("back");
+    std::string* b = q.back();
+    ASSERT_NE(b, nullptr);
+    *b = "modified_back";
+    EXPECT_EQ(*q.back(), "modified_back");
+}
+
+TEST(QueueOps, ClearQueue) {
+    Queue q;
+    q.push("a");
+    q.push("b");
+    q.push("c");
+    EXPECT_EQ(q.size(), 3u);
+    q.clear();
+    EXPECT_TRUE(q.empty());
+    EXPECT_EQ(q.size(), 0u);
+}
+
+TEST(QueueIO, PrintToStream) {
+    Queue q;
+    q.push("a");
+    q.push("b");
+    std::ostringstream os;
+    q.print(os);
+    EXPECT_FALSE(os.str().empty());
+}
+
+TEST(QueueIO, BinarySaveLoad) {
+    Queue q;
+    q.push("x");
+    q.push("y");
+    q.push("z");
+    ASSERT_TRUE(q.save_to_binary("test_queue.bin"));
+
+    Queue other;
+    ASSERT_TRUE(other.load_from_binary("test_queue.bin"));
+    EXPECT_EQ(other.size(), 3u);
+    ASSERT_NE(other.front(), nullptr);
+    EXPECT_EQ(*other.front(), "x");
 }
